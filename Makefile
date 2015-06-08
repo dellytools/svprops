@@ -25,7 +25,7 @@ HTSLIBSOURCES = $(wildcard src/htslib/htslib/*.c) $(wildcard src/htslib/htslib/*
 SVSOURCES = $(wildcard src/*.h) $(wildcard src/*.cpp)
 
 # Targets
-TARGETS = .htslib src/svprops
+TARGETS = .htslib src/svprops src/sampleprops
 
 all:   	$(TARGETS)
 
@@ -33,6 +33,9 @@ all:   	$(TARGETS)
 	cd src/htslib && make && cd ../../ && touch .htslib
 
 src/svprops: .htslib $(SVSOURCES)
+	$(CXX) $(CXXFLAGS) $@.cpp -o $@ $(LDFLAGS)
+
+src/sampleprops: .htslib $(SVSOURCES)
 	$(CXX) $(CXXFLAGS) $@.cpp -o $@ $(LDFLAGS)
 
 clean:
