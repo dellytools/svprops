@@ -15,5 +15,10 @@ Usage:
 
 `./svprops`
 
-`./svprops sv.vcf.gz`
+`./svprops sv.vcf.gz > sv.tab`
+
+Plotting:
+
+`Rscript R/svprops.R sv.tab`
+
 
