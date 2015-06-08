@@ -27,8 +27,15 @@ print("chr", "start", "end", "id", "svType", "vac", "af", "size", "sv2size", "ci
 if args.vcfFile:
     vcf_reader = vcf.Reader(open(args.vcfFile), 'r', compressed=True) if args.vcfFile.endswith('.gz') else vcf.Reader(open(args.vcfFile), 'r', compressed=False)
     for record in vcf_reader:
-        svLen = record.INFO['END'] - record.POS + 1
-        mci = max([abs(ci) for ci in record.INFO['CIPOS'] + record.INFO['CIEND']])
+        try:
+            svEnd = record.INFO['END']
+        except KeyError:
+            svEnd = record.POS + 1
+        svLen = svEnd - record.POS
+        try:
+            mci = max([abs(ci) for ci in record.INFO['CIPOS'] + record.INFO['CIEND']])
+        except KeyError:
+            mci = None
         try:
             sv2info = record.INFO['SV2INFO']
             sv2size = int(sv2info[2]) - int(sv2info[1])
@@ -49,11 +56,11 @@ if args.vcfFile:
                     pass
                 if call.gt_type != 0:
                     cs.append(call.sample)
-                if ((record.CHROM == 'X') or (record.CHROM == 'chrX')) and (call.sample in gender.keys()) and (gender[call.sample] == 'male') and (len(call['GT'].split('/')) == 1):
+                if ((record.CHROM == 'X') or (record.CHROM == 'chrX')) and (call.sample in gender.keys()) and (gender[call.sample] == 'male') and (len(call['GT'].split('|')) == 1):
                     gt = int(call['GT'])
                     refAltAC[gt] += 1
                 else:
-                    for i in [int(gVal) for gVal in call['GT'].split('/')]:
+                    for i in [int(gVal) for gVal in call['GT'].split('|')]:
                         refAltAC[i] += 1
             else:
                 uncalled += 1
@@ -81,4 +88,4 @@ if args.vcfFile:
             svt = "INVDEL"
         elif str(record.ALT[0]) == "<PDUP>":
             svt = "PDUP"
-        print(record.CHROM, record.POS, record.INFO['END'], record.ID, svt, refAltAC[1], af, svLen, sv2size, mci, hper, mgq, cs, missingRate, sep="\t")
+        print(record.CHROM, record.POS, svEnd, record.ID, svt, refAltAC[1], af, svLen, sv2size, mci, hper, mgq, cs, missingRate, sep="\t")
