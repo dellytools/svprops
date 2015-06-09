@@ -26,7 +26,6 @@ Contact: Tobias Rausch (rausch@embl.de)
 #include <vector>
 #include <algorithm>
 #include "htslib/vcf.h"
-#include "htslib/tbx.h"
 
 
 int main(int argc, char **argv) {
@@ -42,13 +41,6 @@ int main(int argc, char **argv) {
     return 1;
   }
   
-  // Load tabix index file
-  tbx_t* tbx = tbx_index_load(argv[1]);
-  if (!tbx) {
-    std::cerr << "Fail to load tabix index file for " << argv[1] << "!" << std::endl;
-    return 1;
-  }
-
   bcf_hdr_t* hdr = bcf_hdr_read(ifile);
   bcf1_t* rec = bcf_init();
 
@@ -112,7 +104,6 @@ int main(int argc, char **argv) {
   free(gt);
   free(dv);
   free(dr);
-  tbx_destroy(tbx);
   bcf_hdr_destroy(hdr);
   bcf_close(ifile);
   bcf_destroy(rec);
