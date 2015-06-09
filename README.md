@@ -24,4 +24,6 @@ Plotting
 
 `Rscript R/svprops.R sv.tab`
 
+`Rscript R/svprops.R sample.tab`
+
 
