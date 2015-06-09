@@ -15,9 +15,9 @@ Installation
 Usage
 -----
 
-`./src/svprops sv.vcf.gz > sv.tab`
+`./src/svprops [sv.vcf|sv.bcf|sv.vcf.gz] > sv.tab`
 
-`./src/sampleprops sv.vcf.gz > sample.tab`
+`./src/sampleprops [sv.vcf|sv.bcf|sv.vcf.gz] > sample.tab`
 
 Plotting
 --------
