@@ -87,7 +87,7 @@ int main(int argc, char **argv) {
     double af= (double) vac / (double) (ac[0] + ac[1] + ac[2]);
     int svlen = *svend - rec->pos;
     double missingRate = (double) uncalled / (double) ngts;
-    if (vac > 1) rareCarrier = "NA";
+    if (vac != 1) rareCarrier = "NA";
     double hper = 0;
     if (hetPERatio.size()) {
       TDVector::iterator begin = hetPERatio.begin();
