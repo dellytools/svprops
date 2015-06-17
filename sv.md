@@ -7,7 +7,7 @@ Structural Variant VCF: ftp://ftp.1000genomes.ebi.ac.uk/vol1/ftp/phase3/integrat
 
 The README has further information on the encoded SV types, analyzed samples and supporting data.
 
-README: ftp://ftp.1000genomes.ebi.ac.uk/vol1/ftp/phase3/integrated_sv_map/README_phase3_sv_callset_20150224.txt
+README: ftp://ftp.1000genomes.ebi.ac.uk/vol1/ftp/phase3/integrated_sv_map/README_phase3_sv_callset_20150224
 
 Accessions are available below.
 
