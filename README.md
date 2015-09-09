@@ -1,7 +1,7 @@
 SV Properties
 =============
 
-Computes various SV statistics from an input VCF file.
+Computes various SV statistics from an input Delly VCF file.
 
 Installation
 ------------
