@@ -22,7 +22,7 @@ else ifeq (${DEBUG}, 2)
 	CXXFLAGS += -g -O0 -fno-inline -DPROFILE
 	LDFLAGS += -lprofiler -ltcmalloc
 else
-	CXXFLAGS += -O9 -DNDEBUG
+	CXXFLAGS += -O9 -DNDEBUG -D__STDC_LIMIT_MACROS
 endif
 
 # External sources
