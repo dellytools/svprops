@@ -15,8 +15,8 @@ x=x[x$svType %in% plotSVTypes,]
 x$svType=factor(x$svType, levels=plotSVTypes)
 
 # VAF binning
-x$vafbin=cut(x$af, breaks=c(-1, 0.001, 0.01, 0.1, 1), labels=c("<0.001", "0.001-0.01", "0.01-0.1", ">0.1"))
-#x$vafbin=cut(x$af, breaks=c(-1, 0.01, 0.1, 0.5, 1), labels=c("<0.01", "0.01-0.1", "0.1-0.25", ">0.5"))
+x$vafbin=cut(x$vaf, breaks=c(-1, 0.001, 0.01, 0.1, 1), labels=c("<0.001", "0.001-0.01", "0.01-0.1", ">0.1"))
+#x$vafbin=cut(x$vaf, breaks=c(-1, 0.01, 0.1, 0.5, 1), labels=c("<0.01", "0.01-0.1", "0.1-0.25", ">0.5"))
 
 # Theme
 lSize=1.2

@@ -60,6 +60,8 @@ int main(int argc, char **argv) {
 
   int32_t nsvend = 0;
   int32_t* svend = NULL;
+  int32_t ninslen = 0;
+  int32_t* inslen = NULL;
   int32_t ncipos = 0;
   int32_t* cipos = NULL;
   int32_t nsvt = 0;
@@ -92,6 +94,7 @@ int main(int argc, char **argv) {
     int uncalled = 0;
     bcf_unpack(rec, BCF_UN_ALL);
     bcf_get_info_int32(hdr, rec, "END", &svend, &nsvend);
+    bcf_get_info_int32(hdr, rec, "INSLEN", &inslen, &ninslen);
     bcf_get_info_int32(hdr, rec, "CIPOS", &cipos, &ncipos);
     bcf_get_info_string(hdr, rec, "SVTYPE", &svt, &nsvt);
     bcf_get_format_int32(hdr, rec, "GT", &gt, &ngt);
@@ -151,6 +154,7 @@ int main(int argc, char **argv) {
     }
     double af= (double) ac[1] / (double) (ac[0] + ac[1]);
     int svlen = *svend - rec->pos;
+    if (std::string(svt) == "INS") svlen = *inslen;
     double missingRate = (double) uncalled / (double) bcf_hdr_nsamples(hdr);
     if (ac[1] != 1) rareCarrier = "NA";
     TDVector::value_type refratio = 0;
@@ -173,6 +177,7 @@ int main(int argc, char **argv) {
 
   // Clean-up
   free(svend);
+  free(inslen);
   free(cipos);
   free(svt);
   free(gt);
