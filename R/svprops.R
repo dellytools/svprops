@@ -7,16 +7,20 @@ args = commandArgs(trailingOnly=TRUE)
 x = read.table(args[1], header=T)
 
 # Plotting SV types
-#plotSVTypes=factor(c("DEL", "DUP", "DRDEL", "DIDEL", "INVDUP", "PDUP", "INVDEL", "INV"))
-plotSVTypes=factor(c("DEL", "DUP"))
+plotsvt = c("DEL", "INS", "DUP")
+plotsvt = plotsvt[plotsvt %in% unique(x$svType)]
+plotSVTypes=factor(plotsvt)
 
 # Keep only desired SV types
 x=x[x$svType %in% plotSVTypes,]
 x$svType=factor(x$svType, levels=plotSVTypes)
 
 # VAF binning
-x$vafbin=cut(x$vaf, breaks=c(-1, 0.001, 0.01, 0.1, 1), labels=c("<0.001", "0.001-0.01", "0.01-0.1", ">0.1"))
-#x$vafbin=cut(x$vaf, breaks=c(-1, 0.01, 0.1, 0.5, 1), labels=c("<0.01", "0.01-0.1", "0.1-0.25", ">0.5"))
+if (max(x$vac)<100) {
+  x$vafbin=cut(x$vaf, breaks=c(-1, 0.01, 0.1, 1), labels=c("<0.01", "0.01-0.1", ">0.1"))
+} else {
+  x$vafbin=cut(x$vaf, breaks=c(-1, 0.001, 0.01, 0.1, 1), labels=c("<0.001", "0.001-0.01", "0.01-0.1", ">0.1"))
+}
 
 # Theme
 lSize=1.2
@@ -27,8 +31,8 @@ lgdTtlFontSize=22
 lgdFontSize=16
 scienceTheme=theme(panel.grid.major=element_blank(), panel.grid.minor=element_blank(), legend.key=element_blank(), legend.background=element_blank(), panel.background = element_blank(), panel.border=element_blank(), strip.background = element_blank(), axis.line=element_line(size=0.7, color="black"), axis.text.x=element_text(size=axisFontSize), axis.text.y=element_text(size=axisFontSize), axis.title.x=element_text(size=axisTtlFontSize), axis.title.y=element_text(size=axisTtlFontSize), legend.title=element_text(size=lgdTtlFontSize, face="bold"), legend.text=element_text(size=lgdFontSize), text=element_text(size=txtFontSize))
 
-png("svprops.png", height=800, width=1200)
-#pdf("svprops.pdf", height=8, width=12)
+#png("svprops.png", height=800, width=1200)
+pdf("svprops.pdf", height=8, width=16)
 grid.newpage()
 pushViewport(viewport(layout=grid.layout(2,5)))
 
@@ -43,17 +47,22 @@ p1=p1 + scienceTheme + labs(colour="SV Type")
 freqX=melt(table(x$vac, x[,c("svType")]), varnames=c("vac", "svType"))
 p2=ggplot(data=freqX, aes(x=vac, y=value)) + geom_line(aes(group=svType, colour=svType), size=lSize)
 p2=p2 + xlab("Variant allele count") + ylab("#SV sites") 
-p2=p2 + scale_x_log10(breaks=c(1,10,100,1000)) + scale_y_log10(breaks=c(1,10,100,1000), limits=c(1,max(freqX$value)))
+p2=p2 + scale_y_log10(breaks=c(1,10,100,1000), limits=c(1,max(freqX$value)))
+if (max(x$vac)<100) {
+   p2=p2 + scale_x_continuous()
+} else {
+   p2=p2 + scale_x_log10(breaks=c(1,10,100,1000))
+}
 p2=p2 + scienceTheme + labs(colour="SV Type") + theme(legend.position=c(1,1), legend.justification=c(1,1))
 
 # Size vs. VAF
 sizeVaf=melt(tapply(x$size, x[,c("vafbin", "svType")], median), varnames=c("vafbin", "svType"))
 p3=ggplot(data=sizeVaf, aes(x=vafbin, y=value))  + geom_line(aes(group=svType, colour=svType), size=lSize, show_guide=FALSE) + geom_point(aes(colour=svType), size=lSize, show_guide=FALSE)
-p3=p3 + xlab("Variant allele frequency") + ylab("Median SV Size") + ylim(0, max(sizeVaf$value))
+p3=p3 + xlab("Variant allele frequency") + ylab("Median SV Size") + scale_y_log10(breaks=c(1,10,100,1000,10000,100000))
 p3=p3 + scienceTheme + labs(colour="SV Type")
 
 # Size histograms
-p4=ggplot(x, aes(x=size)) + geom_freqpoly(aes(group=svType, colour=svType), binwidth=0.1, size=lSize, show_guide=FALSE) 
+p4=ggplot(x, aes(x=size)) + geom_freqpoly(aes(group=svType, color=svType), binwidth=0.1, size=lSize, show_guide=FALSE) 
 p4=p4 + xlab('SV size') + ylab('#SV sites') + scale_y_log10(breaks=c(1,10,100,1000))
 p4=p4 + scale_x_log10(limits=c(50, max(x$size)), expand=c(0,0), breaks=c(1e2, 1e3, 1e4, 1e5, 1e6), labels=c('100bp', '1kb', '10kb', '100kb', '1Mb'))
 p4=p4 + scienceTheme + labs(colour="SV Type")
