@@ -189,8 +189,10 @@ int main(int argc, char **argv) {
   free(rv);
   free(rr);
   free(gq);
-  free(ft[0]);
-  free(ft);
+  if (ft != NULL) {
+    free(ft[0]);
+    free(ft);
+  }
   bcf_hdr_destroy(hdr);
   bcf_close(ifile);
   bcf_destroy(rec);
