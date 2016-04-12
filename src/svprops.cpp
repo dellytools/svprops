@@ -233,7 +233,8 @@ int main(int argc, char **argv) {
 	  }
 	  if (_isKeyPresent(hdr, "RC")) {
 	    rcRef.push_back( rc[i] );
-	    rcRefRatio.push_back( (double) rc[i] / (double) (rcl[i] + rcr[i]) );
+	    if (_isKeyPresent(hdr, "RCL")) rcRefRatio.push_back( (double) rc[i] / (double) (rcl[i] + rcr[i]) );
+	    else rcRefRatio.push_back((double) rc[i]);
 	  }
 	  if (_isKeyPresent(hdr, "DV")) {
 	    if (precise) ratioRef.push_back( (double) rv[i] / (double) (rr[i] + rv[i]) );
@@ -252,7 +253,10 @@ int main(int argc, char **argv) {
 		else gqAlt.push_back( gqFloat[i] );
 	      }
 	    }
-	    if (_isKeyPresent(hdr, "RC")) rcAltRatio.push_back( (double) rc[i] / (double) (rcl[i] + rcr[i]) );
+	    if (_isKeyPresent(hdr, "RC")) {
+	      if (_isKeyPresent(hdr, "RCL")) rcAltRatio.push_back( (double) rc[i] / (double) (rcl[i] + rcr[i]) );
+	      else rcAltRatio.push_back((double) rc[i]);
+	    }
 	    if (_isKeyPresent(hdr, "DV")) {
 	      if (precise) ratioAlt.push_back( (double) rv[i] / (double) (rr[i] + rv[i]) );
 	      else ratioAlt.push_back( (double) dv[i] / (double) (dr[i] + dv[i]) );
