@@ -106,6 +106,8 @@ int main(int argc, char **argv) {
   char* svt = NULL;
   int32_t nfic = 0;
   float* fic = NULL;
+  int32_t nce = 0;
+  float* ce = NULL;
   int32_t nrsq = 0;
   float* rsq = NULL;
   int32_t nhwepval = 0;
@@ -149,6 +151,7 @@ int main(int argc, char **argv) {
   if (_isKeyPresent(hdr, "IMPRECISE")) cMap["precise"] = fieldIndex++;
   if (_isKeyPresent(hdr, "CIPOS")) cMap["ci"] = fieldIndex++;
   if (_isKeyPresent(hdr, "FIC")) cMap["fic"] = fieldIndex++;
+  if (_isKeyPresent(hdr, "CE")) cMap["ce"] = fieldIndex++;
   if (_isKeyPresent(hdr, "RSQ")) cMap["rsq"] = fieldIndex++;
   if (_isKeyPresent(hdr, "HWEpval")) cMap["hwepval"] = fieldIndex++;
   if (_isKeyPresent(hdr, "GQ")) {
@@ -186,6 +189,7 @@ int main(int argc, char **argv) {
     if (_isKeyPresent(hdr, "INSLEN")) bcf_get_info_int32(hdr, rec, "INSLEN", &inslen, &ninslen);
     if (_isKeyPresent(hdr, "CIPOS")) bcf_get_info_int32(hdr, rec, "CIPOS", &cipos, &ncipos);
     if (_isKeyPresent(hdr, "FIC")) bcf_get_info_float(hdr, rec, "FIC", &fic, &nfic);
+    if (_isKeyPresent(hdr, "CE")) bcf_get_info_float(hdr, rec, "CE", &ce, &nce);
     if (_isKeyPresent(hdr, "RSQ")) bcf_get_info_float(hdr, rec, "RSQ", &rsq, &nrsq);
     if (_isKeyPresent(hdr, "HWEpval")) bcf_get_info_float(hdr, rec, "HWEpval", &hwepval, &nhwepval);
     if (_isKeyPresent(hdr, "SVTYPE")) bcf_get_info_string(hdr, rec, "SVTYPE", &svt, &nsvt);
@@ -335,6 +339,7 @@ int main(int argc, char **argv) {
 	else if (*cHead == "rdratio") std::cout << rdRatio;
 	else if (*cHead == "medianrc") std::cout << rcMed;
 	else if (*cHead == "fic") std::cout << *fic;
+	else if (*cHead == "ce") std::cout << *ce;
 	else if (*cHead == "rsq") std::cout << *rsq;
 	else if (*cHead == "hwepval") std::cout << *hwepval;
       }
@@ -348,6 +353,7 @@ int main(int argc, char **argv) {
   if (cipos != NULL) free(cipos);
   if (svt != NULL) free(svt);
   if (fic != NULL) free(fic);
+  if (ce != NULL) free(ce);
   if (rsq != NULL) free(rsq);
   if (hwepval != NULL) free(hwepval);
   if (chr2 != NULL) free(chr2);
