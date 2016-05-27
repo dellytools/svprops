@@ -339,7 +339,10 @@ int main(int argc, char **argv) {
 	else if (*cHead == "rdratio") std::cout << rdRatio;
 	else if (*cHead == "medianrc") std::cout << rcMed;
 	else if (*cHead == "fic") std::cout << *fic;
-	else if (*cHead == "ce") std::cout << *ce;
+	else if (*cHead == "ce") {
+	  if (precise) std::cout << *ce;
+	  else std::cout << "0";
+	}
 	else if (*cHead == "rsq") std::cout << *rsq;
 	else if (*cHead == "hwepval") std::cout << *hwepval;
       }
