@@ -140,6 +140,7 @@ int main(int argc, char **argv) {
   TColumnMap cMap;
   cMap["chr"] = fieldIndex++;
   cMap["start"] = fieldIndex++;
+  cMap["chr2"] = fieldIndex++;
   cMap["end"] = fieldIndex++;
   cMap["id"] = fieldIndex++;
   cMap["size"] = fieldIndex++;
@@ -206,6 +207,11 @@ int main(int argc, char **argv) {
     if (_isKeyPresent(hdr, "DR")) bcf_get_format_int32(hdr, rec, "DR", &dr, &ndr);
     if (_isKeyPresent(hdr, "RV")) bcf_get_format_int32(hdr, rec, "RV", &rv, &nrv);
     if (_isKeyPresent(hdr, "RR")) bcf_get_format_int32(hdr, rec, "RR", &rr, &nrr);
+    std::string chr2Name = "NA";
+    if (_isKeyPresent(hdr, "CHR2")) {
+      bcf_get_info_string(hdr, rec, "CHR2", &chr2, &nchr2);
+      chr2Name = std::string(chr2);
+    }
 
     std::string rareCarrier;
     typedef double TPrecision;
@@ -297,57 +303,39 @@ int main(int argc, char **argv) {
     _getMedian(rcRef, rcMed);
 
     // Write record
-    uint32_t numLines = 1;
-    if (std::string(svt) == "TRA") numLines=2;
-    for(uint32_t lineCount = 0; lineCount < numLines; ++lineCount) {
-      for(TColumnHeader::const_iterator cHead = cHeader.begin(); cHead != cHeader.end(); ++cHead) {
-	if (cHead != cHeader.begin()) std::cout << "\t";
-	if (*cHead == "chr") {
-	  if (lineCount==0) std::cout << bcf_hdr_id2name(hdr, rec->rid);
-	  else if ((lineCount==1) && (bcf_get_info_string(hdr, rec, "CHR2", &chr2, &nchr2) > 0)) {
-	    std::string chr2Name = std::string(chr2);
-	    std::cout << chr2Name;
-	  }
-	}
-	else if (*cHead == "start") {
-	  if (lineCount==0) std::cout << (rec->pos + 1);
-	  else if (lineCount==1) std::cout << *svend;  // Translocation
-	}
-	else if (*cHead == "end") {
-	  if (numLines==1) {
-	    if (_isKeyPresent(hdr, "END")) std::cout << *svend;
-	    else std::cout << rec->pos + 2;
-	  } else {
-	    // Translocation
-	    if (lineCount==0) std::cout << rec->pos + 1;
-	    else if (lineCount==1) std::cout << *svend;
-	  }
-	}
-	else if (*cHead == "id") std::cout << rec->d.id;
-	else if (*cHead == "size") std::cout << svlen;
-	else if (*cHead == "vac") std::cout << ac[1];
-	else if (*cHead == "vaf") std::cout << af;
-	else if (*cHead == "singleton") std::cout << rareCarrier;
-	else if (*cHead == "missingrate") std::cout << missingRate;
-	else if (*cHead == "svtype") std::cout << svt;
-	else if (*cHead == "precise") std::cout << precise;
-	else if (*cHead == "ci") std::cout << cipos[1];
-	else if (*cHead == "refratio") std::cout << refratio;
-	else if (*cHead == "altratio") std::cout << altratio;
-	else if (*cHead == "refgq") std::cout << refgq;
-	else if (*cHead == "altgq") std::cout << altgq;
-	else if (*cHead == "rdratio") std::cout << rdRatio;
-	else if (*cHead == "medianrc") std::cout << rcMed;
-	else if (*cHead == "fic") std::cout << *fic;
-	else if (*cHead == "ce") {
-	  if (precise) std::cout << *ce;
-	  else std::cout << "0";
-	}
-	else if (*cHead == "rsq") std::cout << *rsq;
-	else if (*cHead == "hwepval") std::cout << *hwepval;
+    for(TColumnHeader::const_iterator cHead = cHeader.begin(); cHead != cHeader.end(); ++cHead) {
+      if (cHead != cHeader.begin()) std::cout << "\t";
+      if (*cHead == "chr") std::cout << bcf_hdr_id2name(hdr, rec->rid);
+      else if (*cHead == "start") std::cout << (rec->pos + 1);
+      else if (*cHead == "chr2") std::cout << chr2Name;
+      else if (*cHead == "end") {
+	if (_isKeyPresent(hdr, "END")) std::cout << *svend;
+	else std::cout << rec->pos + 2;
       }
-      std::cout << std::endl;
+      else if (*cHead == "id") std::cout << rec->d.id;
+      else if (*cHead == "size") std::cout << svlen;
+      else if (*cHead == "vac") std::cout << ac[1];
+      else if (*cHead == "vaf") std::cout << af;
+      else if (*cHead == "singleton") std::cout << rareCarrier;
+      else if (*cHead == "missingrate") std::cout << missingRate;
+      else if (*cHead == "svtype") std::cout << svt;
+      else if (*cHead == "precise") std::cout << precise;
+      else if (*cHead == "ci") std::cout << cipos[1];
+      else if (*cHead == "refratio") std::cout << refratio;
+      else if (*cHead == "altratio") std::cout << altratio;
+      else if (*cHead == "refgq") std::cout << refgq;
+      else if (*cHead == "altgq") std::cout << altgq;
+      else if (*cHead == "rdratio") std::cout << rdRatio;
+      else if (*cHead == "medianrc") std::cout << rcMed;
+      else if (*cHead == "fic") std::cout << *fic;
+      else if (*cHead == "ce") {
+	if ((precise) && (nce > 0)) std::cout << *ce;
+	else std::cout << "0";
+      }
+      else if (*cHead == "rsq") std::cout << *rsq;
+      else if (*cHead == "hwepval") std::cout << *hwepval;
     }
+    std::cout << std::endl;
   }
 
   // Clean-up

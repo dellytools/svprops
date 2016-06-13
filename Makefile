@@ -3,7 +3,7 @@ STATIC ?= 0
 
 # Submodules
 PWD = $(shell pwd)
-SEQTK_ROOT = ${PWD}/src/htslib/
+SEQTK_ROOT ?= ${PWD}/src/htslib/
 
 # Flags
 CXX=g++
