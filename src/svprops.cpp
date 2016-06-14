@@ -114,6 +114,8 @@ int main(int argc, char **argv) {
   float* hwepval = NULL;
   int32_t nchr2 = 0;
   char* chr2 = NULL;
+  int32_t nct = 0;
+  char* ct = NULL;
   int ngt = 0;
   int32_t* gt = NULL;
   int nrc = 0;
@@ -149,6 +151,7 @@ int main(int argc, char **argv) {
   cMap["singleton"] = fieldIndex++;
   cMap["missingrate"] = fieldIndex++;
   if (_isKeyPresent(hdr, "SVTYPE")) cMap["svtype"] = fieldIndex++;
+  if (_isKeyPresent(hdr, "CT")) cMap["ct"] = fieldIndex++;
   if (_isKeyPresent(hdr, "IMPRECISE")) cMap["precise"] = fieldIndex++;
   if (_isKeyPresent(hdr, "CIPOS")) cMap["ci"] = fieldIndex++;
   if (_isKeyPresent(hdr, "FIC")) cMap["fic"] = fieldIndex++;
@@ -211,6 +214,11 @@ int main(int argc, char **argv) {
     if (_isKeyPresent(hdr, "CHR2")) {
       bcf_get_info_string(hdr, rec, "CHR2", &chr2, &nchr2);
       chr2Name = std::string(chr2);
+    }
+    std::string ctval = "NA";
+    if (_isKeyPresent(hdr, "CT")) {
+      bcf_get_info_string(hdr, rec, "CT", &ct, &nct);
+      ctval = std::string(ct);
     }
 
     std::string rareCarrier;
@@ -319,6 +327,7 @@ int main(int argc, char **argv) {
       else if (*cHead == "singleton") std::cout << rareCarrier;
       else if (*cHead == "missingrate") std::cout << missingRate;
       else if (*cHead == "svtype") std::cout << svt;
+      else if (*cHead == "ct") std::cout << ctval;
       else if (*cHead == "precise") std::cout << precise;
       else if (*cHead == "ci") std::cout << cipos[1];
       else if (*cHead == "refratio") std::cout << refratio;
@@ -348,6 +357,7 @@ int main(int argc, char **argv) {
   if (rsq != NULL) free(rsq);
   if (hwepval != NULL) free(hwepval);
   if (chr2 != NULL) free(chr2);
+  if (ct != NULL) free(ct);
   if (gt != NULL) free(gt);
   if (rc != NULL) free(rc);
   if (rcl != NULL) free(rcl);
