@@ -100,6 +100,8 @@ int main(int argc, char **argv) {
   int32_t* svend = NULL;
   int32_t ninslen = 0;
   int32_t* inslen = NULL;
+  int32_t nhomlen = 0;
+  int32_t* homlen = NULL;
   int32_t ncipos = 0;
   int32_t* cipos = NULL;
   int32_t nsvt = 0;
@@ -154,6 +156,8 @@ int main(int argc, char **argv) {
   if (_isKeyPresent(hdr, "CT")) cMap["ct"] = fieldIndex++;
   if (_isKeyPresent(hdr, "IMPRECISE")) cMap["precise"] = fieldIndex++;
   if (_isKeyPresent(hdr, "CIPOS")) cMap["ci"] = fieldIndex++;
+  if (_isKeyPresent(hdr, "INSLEN")) cMap["inslen"] = fieldIndex++;
+  if (_isKeyPresent(hdr, "HOMLEN")) cMap["homlen"] = fieldIndex++;
   if (_isKeyPresent(hdr, "FIC")) cMap["fic"] = fieldIndex++;
   if (_isKeyPresent(hdr, "CE")) cMap["ce"] = fieldIndex++;
   if (_isKeyPresent(hdr, "RSQ")) cMap["rsq"] = fieldIndex++;
@@ -191,6 +195,7 @@ int main(int argc, char **argv) {
     bcf_get_format_int32(hdr, rec, "GT", &gt, &ngt);
     if (_isKeyPresent(hdr, "END")) bcf_get_info_int32(hdr, rec, "END", &svend, &nsvend);
     if (_isKeyPresent(hdr, "INSLEN")) bcf_get_info_int32(hdr, rec, "INSLEN", &inslen, &ninslen);
+    if (_isKeyPresent(hdr, "HOMLEN")) bcf_get_info_int32(hdr, rec, "HOMLEN", &homlen, &nhomlen);
     if (_isKeyPresent(hdr, "CIPOS")) bcf_get_info_int32(hdr, rec, "CIPOS", &cipos, &ncipos);
     if (_isKeyPresent(hdr, "FIC")) bcf_get_info_float(hdr, rec, "FIC", &fic, &nfic);
     if (_isKeyPresent(hdr, "CE")) bcf_get_info_float(hdr, rec, "CE", &ce, &nce);
@@ -336,6 +341,8 @@ int main(int argc, char **argv) {
       else if (*cHead == "altgq") std::cout << altgq;
       else if (*cHead == "rdratio") std::cout << rdRatio;
       else if (*cHead == "medianrc") std::cout << rcMed;
+      else if (*cHead == "inslen") std::cout << *inslen;
+      else if (*cHead == "homlen") std::cout << *homlen;
       else if (*cHead == "fic") std::cout << *fic;
       else if (*cHead == "ce") {
 	if ((precise) && (nce > 0)) std::cout << *ce;
@@ -350,6 +357,7 @@ int main(int argc, char **argv) {
   // Clean-up
   if (svend != NULL) free(svend);
   if (inslen != NULL) free(inslen);
+  if (homlen != NULL) free(homlen);
   if (cipos != NULL) free(cipos);
   if (svt != NULL) free(svt);
   if (fic != NULL) free(fic);
