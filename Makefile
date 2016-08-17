@@ -7,7 +7,7 @@ SEQTK_ROOT ?= ${PWD}/src/htslib/
 
 # Flags
 CXX=g++
-CXXFLAGS += -isystem ${SEQTK_ROOT} -pedantic -W -Wall -Wno-unknown-pragmas
+CXXFLAGS += -isystem ${SEQTK_ROOT} -pedantic -W -Wall -Wno-unknown-pragmas -fno-strict-aliasing
 LDFLAGS += -L${SEQTK_ROOT}
 
 # Additional flags for release/debug
