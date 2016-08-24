@@ -41,6 +41,16 @@ _getMedian(TVector& v, typename TVector::value_type& med) {
   }
 }
 
+template<typename TVector>
+inline void
+_getMax(TVector& v, typename TVector::value_type& max) {
+  if (v.size()) {
+    max = v[0];
+    for(typename TVector::iterator itv = v.begin();  itv != v.end(); ++itv)
+      if (*itv > max) max = *itv;
+  }
+}
+
 inline bool
 _isKeyPresent(bcf_hdr_t const* hdr, std::string const& key) {
   return (bcf_hdr_id2int(hdr, BCF_DT_ID, key.c_str())>=0);
@@ -173,6 +183,7 @@ int main(int argc, char **argv) {
   if (_isKeyPresent(hdr, "DV")) {
     cMap["refratio"] = fieldIndex++;
     cMap["altratio"] = fieldIndex++;
+    cMap["maxaltratio"] = fieldIndex++;
   }
 
   typedef std::vector<std::string> TColumnHeader;
@@ -302,6 +313,8 @@ int main(int argc, char **argv) {
     _getMedian(ratioRef, refratio);
     TPrecision altratio = 0;
     _getMedian(ratioAlt, altratio);
+    TPrecision maxaltratio = 0;
+    _getMax(ratioAlt, maxaltratio);
     TPrecision refgq = 0;
     _getMedian(gqRef, refgq);
     TPrecision altgq = 0;
@@ -337,6 +350,7 @@ int main(int argc, char **argv) {
       else if (*cHead == "ci") std::cout << cipos[1];
       else if (*cHead == "refratio") std::cout << refratio;
       else if (*cHead == "altratio") std::cout << altratio;
+      else if (*cHead == "maxaltratio") std::cout << maxaltratio;
       else if (*cHead == "refgq") std::cout << refgq;
       else if (*cHead == "altgq") std::cout << altgq;
       else if (*cHead == "rdratio") std::cout << rdRatio;
