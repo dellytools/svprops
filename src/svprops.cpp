@@ -306,7 +306,11 @@ int main(int argc, char **argv) {
     int32_t svlen = 1;
     if (std::string(svt) == "TRA") svlen = 0;
     else if (svend != NULL) svlen = *svend - rec->pos;
-    if ((svt != NULL) && (std::string(svt) == "INS")) svlen = *inslen; 
+    if ((svt != NULL) && (std::string(svt) == "INS")) svlen = *inslen;
+    int32_t ilen = 0;
+    if ((precise) && (inslen != NULL)) ilen = *inslen;
+    int32_t hlen = 0;
+    if ((precise) && (homlen != NULL)) hlen = *homlen;
     TPrecision missingRate = (TPrecision) uncalled / (TPrecision) bcf_hdr_nsamples(hdr);
     
     TPrecision refratio = 0;
@@ -355,8 +359,8 @@ int main(int argc, char **argv) {
       else if (*cHead == "altgq") std::cout << altgq;
       else if (*cHead == "rdratio") std::cout << rdRatio;
       else if (*cHead == "medianrc") std::cout << rcMed;
-      else if (*cHead == "inslen") std::cout << *inslen;
-      else if (*cHead == "homlen") std::cout << *homlen;
+      else if (*cHead == "inslen") std::cout << ilen;
+      else if (*cHead == "homlen") std::cout << hlen;
       else if (*cHead == "fic") std::cout << *fic;
       else if (*cHead == "ce") {
 	if ((precise) && (nce > 0)) std::cout << *ce;
