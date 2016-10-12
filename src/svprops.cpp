@@ -201,6 +201,10 @@ int main(int argc, char **argv) {
   bcf1_t* rec = bcf_init();
   uint32_t siteCount = 0;
   while (bcf_read(ifile, hdr, rec) == 0) {
+    bool gqPresent = false;
+    bool rcPresent = false;
+    bool dvPresent = false;
+    
     ++siteCount;
     bcf_unpack(rec, BCF_UN_ALL);
     bcf_get_format_int32(hdr, rec, "GT", &gt, &ngt);
@@ -214,19 +218,26 @@ int main(int argc, char **argv) {
     if (_isKeyPresent(hdr, "HWEpval")) bcf_get_info_float(hdr, rec, "HWEpval", &hwepval, &nhwepval);
     if (_isKeyPresent(hdr, "SVTYPE")) bcf_get_info_string(hdr, rec, "SVTYPE", &svt, &nsvt);
     if (_isKeyPresent(hdr, "GQ")) {
-      if (_getFormatType(hdr, "GQ") == BCF_HT_INT) bcf_get_format_int32(hdr, rec, "GQ", &gqInt, &ngq);
-      else if (_getFormatType(hdr, "GQ") == BCF_HT_REAL) bcf_get_format_float(hdr, rec, "GQ", &gqFloat, &ngq);
+      if (_getFormatType(hdr, "GQ") == BCF_HT_INT) {
+	if (bcf_get_format_int32(hdr, rec, "GQ", &gqInt, &ngq) > 0) gqPresent = true;
+      } else if (_getFormatType(hdr, "GQ") == BCF_HT_REAL) {
+	if (bcf_get_format_float(hdr, rec, "GQ", &gqFloat, &ngq) > 0) gqPresent = true;
+      }
     }
     bool precise = false;
     if (bcf_get_info_flag(hdr, rec, "PRECISE", 0, 0) > 0) precise = true;
-    if (_isKeyPresent(hdr, "RC")) bcf_get_format_int32(hdr, rec, "RC", &rc, &nrc);
+    if (_isKeyPresent(hdr, "RC")) {
+      if (bcf_get_format_int32(hdr, rec, "RC", &rc, &nrc) > 0) rcPresent = true;
+    }
     if (_isKeyPresent(hdr, "RCL")) bcf_get_format_int32(hdr, rec, "RCL", &rcl, &nrcl);
     if (_isKeyPresent(hdr, "RCR")) bcf_get_format_int32(hdr, rec, "RCR", &rcr, &nrcr);
-    if (_isKeyPresent(hdr, "DV")) bcf_get_format_int32(hdr, rec, "DV", &dv, &ndv);
+    if (_isKeyPresent(hdr, "DV")) {
+      if (bcf_get_format_int32(hdr, rec, "DV", &dv, &ndv) > 0) dvPresent = true;
+    }
     if (_isKeyPresent(hdr, "DR")) bcf_get_format_int32(hdr, rec, "DR", &dr, &ndr);
     if (_isKeyPresent(hdr, "RV")) bcf_get_format_int32(hdr, rec, "RV", &rv, &nrv);
     if (_isKeyPresent(hdr, "RR")) bcf_get_format_int32(hdr, rec, "RR", &rr, &nrr);
-    std::string chr2Name = "NA";
+    std::string chr2Name("NA");
     if (_isKeyPresent(hdr, "CHR2")) {
       bcf_get_info_string(hdr, rec, "CHR2", &chr2, &nchr2);
       chr2Name = std::string(chr2);
@@ -258,7 +269,7 @@ int main(int argc, char **argv) {
 	++ac[bcf_gt_allele(gt[i*2 + 1])];
 	if (gt_type == 0) {
 	  // Non-carrier
-	  if (_isKeyPresent(hdr, "GQ")) {
+	  if (gqPresent) {
 	    if (_getFormatType(hdr, "GQ") == BCF_HT_INT) {
 	      if (_missing(gqInt[i])) gqRef.push_back(0);
 	      else gqRef.push_back( gqInt[i] );
@@ -266,13 +277,13 @@ int main(int argc, char **argv) {
 	      if (_missing(gqFloat[i])) gqRef.push_back(0);
 	      else gqRef.push_back( gqFloat[i] );
 	    }
-	  }
-	  if (_isKeyPresent(hdr, "RC")) {
+	  } else gqRef.push_back(0);
+	  if (rcPresent) {
 	    rcRef.push_back( rc[i] );
 	    if (_isKeyPresent(hdr, "RCL")) rcRefRatio.push_back( (double) rc[i] / (double) (rcl[i] + rcr[i]) );
 	    else rcRefRatio.push_back((double) rc[i]);
 	  }
-	  if (_isKeyPresent(hdr, "DV")) {
+	  if (dvPresent) {
 	    if (precise) ratioRef.push_back( (double) rv[i] / (double) (rr[i] + rv[i]) );
 	    else ratioRef.push_back( (double) dv[i] / (double) (dr[i] + dv[i]) );
 	  }
@@ -280,7 +291,7 @@ int main(int argc, char **argv) {
 	  // Only het. carrier
 	  if (gt_type == 1) {
 	    if (ac[1] == 1) rareCarrier = hdr->samples[i];
-	    if (_isKeyPresent(hdr, "GQ")) {
+	    if (gqPresent) {
 	      if (_getFormatType(hdr, "GQ") == BCF_HT_INT) {
 		if (_missing(gqInt[i])) gqAlt.push_back(0);
 		else gqAlt.push_back( gqInt[i] );
@@ -288,12 +299,12 @@ int main(int argc, char **argv) {
 		if (_missing(gqFloat[i])) gqAlt.push_back(0);
 		else gqAlt.push_back( gqFloat[i] );
 	      }
-	    }
-	    if (_isKeyPresent(hdr, "RC")) {
+	    } else gqAlt.push_back(0);
+	    if (rcPresent) {
 	      if (_isKeyPresent(hdr, "RCL")) rcAltRatio.push_back( (double) rc[i] / (double) (rcl[i] + rcr[i]) );
 	      else rcAltRatio.push_back((double) rc[i]);
 	    }
-	    if (_isKeyPresent(hdr, "DV")) {
+	    if (dvPresent) {
 	      if (precise) ratioAlt.push_back( (double) rv[i] / (double) (rr[i] + rv[i]) );
 	      else ratioAlt.push_back( (double) dv[i] / (double) (dr[i] + dv[i]) );
 	    }
