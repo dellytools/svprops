@@ -207,6 +207,7 @@ int main(int argc, char **argv) {
     bool ficPresent = false;
     bool rsqPresent = false;
     bool hwePresent = false;
+    bool ciPresent = false;
     
     ++siteCount;
     bcf_unpack(rec, BCF_UN_ALL);
@@ -214,7 +215,9 @@ int main(int argc, char **argv) {
     if (_isKeyPresent(hdr, "END")) bcf_get_info_int32(hdr, rec, "END", &svend, &nsvend);
     if (_isKeyPresent(hdr, "INSLEN")) bcf_get_info_int32(hdr, rec, "INSLEN", &inslen, &ninslen);
     if (_isKeyPresent(hdr, "HOMLEN")) bcf_get_info_int32(hdr, rec, "HOMLEN", &homlen, &nhomlen);
-    if (_isKeyPresent(hdr, "CIPOS")) bcf_get_info_int32(hdr, rec, "CIPOS", &cipos, &ncipos);
+    if (_isKeyPresent(hdr, "CIPOS")) {
+      if (bcf_get_info_int32(hdr, rec, "CIPOS", &cipos, &ncipos) > 0) ciPresent = true;
+    }
     if (_isKeyPresent(hdr, "FIC")) {
       if (bcf_get_info_float(hdr, rec, "FIC", &fic, &nfic) > 0) ficPresent = true;
     }
@@ -369,7 +372,10 @@ int main(int argc, char **argv) {
       else if (*cHead == "svtype") std::cout << svt;
       else if (*cHead == "ct") std::cout << ctval;
       else if (*cHead == "precise") std::cout << precise;
-      else if (*cHead == "ci") std::cout << cipos[1];
+      else if (*cHead == "ci") {
+	if (ciPresent) std::cout << cipos[1];
+	else std::cout << "NA";
+      }
       else if (*cHead == "refratio") std::cout << refratio;
       else if (*cHead == "altratio") std::cout << altratio;
       else if (*cHead == "maxaltratio") std::cout << maxaltratio;
