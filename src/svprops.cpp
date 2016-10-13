@@ -204,6 +204,9 @@ int main(int argc, char **argv) {
     bool gqPresent = false;
     bool rcPresent = false;
     bool dvPresent = false;
+    bool ficPresent = false;
+    bool rsqPresent = false;
+    bool hwePresent = false;
     
     ++siteCount;
     bcf_unpack(rec, BCF_UN_ALL);
@@ -212,10 +215,16 @@ int main(int argc, char **argv) {
     if (_isKeyPresent(hdr, "INSLEN")) bcf_get_info_int32(hdr, rec, "INSLEN", &inslen, &ninslen);
     if (_isKeyPresent(hdr, "HOMLEN")) bcf_get_info_int32(hdr, rec, "HOMLEN", &homlen, &nhomlen);
     if (_isKeyPresent(hdr, "CIPOS")) bcf_get_info_int32(hdr, rec, "CIPOS", &cipos, &ncipos);
-    if (_isKeyPresent(hdr, "FIC")) bcf_get_info_float(hdr, rec, "FIC", &fic, &nfic);
+    if (_isKeyPresent(hdr, "FIC")) {
+      if (bcf_get_info_float(hdr, rec, "FIC", &fic, &nfic) > 0) ficPresent = true;
+    }
     if (_isKeyPresent(hdr, "CE")) bcf_get_info_float(hdr, rec, "CE", &ce, &nce);
-    if (_isKeyPresent(hdr, "RSQ")) bcf_get_info_float(hdr, rec, "RSQ", &rsq, &nrsq);
-    if (_isKeyPresent(hdr, "HWEpval")) bcf_get_info_float(hdr, rec, "HWEpval", &hwepval, &nhwepval);
+    if (_isKeyPresent(hdr, "RSQ")) {
+      if (bcf_get_info_float(hdr, rec, "RSQ", &rsq, &nrsq) > 0) rsqPresent = true;
+    }
+    if (_isKeyPresent(hdr, "HWEpval")) {
+      if (bcf_get_info_float(hdr, rec, "HWEpval", &hwepval, &nhwepval) > 0) hwePresent = true;
+    }
     if (_isKeyPresent(hdr, "SVTYPE")) bcf_get_info_string(hdr, rec, "SVTYPE", &svt, &nsvt);
     if (_isKeyPresent(hdr, "GQ")) {
       if (_getFormatType(hdr, "GQ") == BCF_HT_INT) {
@@ -239,13 +248,11 @@ int main(int argc, char **argv) {
     if (_isKeyPresent(hdr, "RR")) bcf_get_format_int32(hdr, rec, "RR", &rr, &nrr);
     std::string chr2Name("NA");
     if (_isKeyPresent(hdr, "CHR2")) {
-      bcf_get_info_string(hdr, rec, "CHR2", &chr2, &nchr2);
-      chr2Name = std::string(chr2);
+      if (bcf_get_info_string(hdr, rec, "CHR2", &chr2, &nchr2) > 0) chr2Name = std::string(chr2);
     }
-    std::string ctval = "NA";
+    std::string ctval("NA");
     if (_isKeyPresent(hdr, "CT")) {
-      bcf_get_info_string(hdr, rec, "CT", &ct, &nct);
-      ctval = std::string(ct);
+      if (bcf_get_info_string(hdr, rec, "CT", &ct, &nct) > 0) ctval = std::string(ct);
     }
 
     std::string rareCarrier;
@@ -372,13 +379,20 @@ int main(int argc, char **argv) {
       else if (*cHead == "medianrc") std::cout << rcMed;
       else if (*cHead == "inslen") std::cout << ilen;
       else if (*cHead == "homlen") std::cout << hlen;
-      else if (*cHead == "fic") std::cout << *fic;
-      else if (*cHead == "ce") {
+      else if (*cHead == "fic") {
+	if (ficPresent) std::cout << *fic;
+	else std::cout << "NA";
+      } else if (*cHead == "ce") {
 	if ((precise) && (nce > 0)) std::cout << *ce;
 	else std::cout << "0";
       }
-      else if (*cHead == "rsq") std::cout << *rsq;
-      else if (*cHead == "hwepval") std::cout << *hwepval;
+      else if (*cHead == "rsq") {
+	if (rsqPresent) std::cout << *rsq;
+	else std::cout << "NA";
+      } else if (*cHead == "hwepval") {
+	if (hwePresent) std::cout << *hwepval;
+	else std::cout << "NA";
+      }
     }
     std::cout << std::endl;
   }
