@@ -6,7 +6,7 @@ Computes various SV statistics from an input Delly VCF file.
 Installation
 ------------
 
-`git clone --recursive https://github.com/tobiasrausch/svprops.git`
+`git clone --recursive https://github.com/dellytools/svprops.git`
 
 `cd svprops/`
 
