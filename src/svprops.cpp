@@ -184,6 +184,8 @@ int main(int argc, char **argv) {
     cMap["refratio"] = fieldIndex++;
     cMap["altratio"] = fieldIndex++;
     cMap["maxaltratio"] = fieldIndex++;
+    cMap["PEsupport"] = fieldIndex++;
+    cMap["SRsupport"] = fieldIndex++;
   }
 
   typedef std::vector<std::string> TColumnHeader;
@@ -259,6 +261,8 @@ int main(int argc, char **argv) {
     }
 
     std::string rareCarrier;
+    uint32_t totalPE = 0;
+    uint32_t totalSR = 0;
     typedef double TPrecision;
     typedef std::vector<TPrecision> TValueVector;
     TValueVector gqRef;   // GQ of non-carriers
@@ -298,6 +302,9 @@ int main(int argc, char **argv) {
 	    else ratioRef.push_back( (double) dv[i] / (double) (dr[i] + dv[i]) );
 	  }
 	} else {
+	  totalSR += rv[i];
+	  totalPE += dv[i];
+
 	  // Only het. carrier
 	  if (gt_type == 1) {
 	    if (ac[1] == 1) rareCarrier = hdr->samples[i];
@@ -379,6 +386,8 @@ int main(int argc, char **argv) {
       else if (*cHead == "refratio") std::cout << refratio;
       else if (*cHead == "altratio") std::cout << altratio;
       else if (*cHead == "maxaltratio") std::cout << maxaltratio;
+      else if (*cHead == "PEsupport") std::cout << totalPE;
+      else if (*cHead == "SRsupport") std::cout << totalSR;
       else if (*cHead == "refgq") std::cout << refgq;
       else if (*cHead == "altgq") std::cout << altgq;
       else if (*cHead == "rdratio") std::cout << rdRatio;
