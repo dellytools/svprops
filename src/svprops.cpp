@@ -210,6 +210,7 @@ int main(int argc, char **argv) {
     bool rsqPresent = false;
     bool hwePresent = false;
     bool ciPresent = false;
+    bool svtPresent = false;
     
     ++siteCount;
     bcf_unpack(rec, BCF_UN_ALL);
@@ -230,7 +231,9 @@ int main(int argc, char **argv) {
     if (_isKeyPresent(hdr, "HWEpval")) {
       if (bcf_get_info_float(hdr, rec, "HWEpval", &hwepval, &nhwepval) > 0) hwePresent = true;
     }
-    if (_isKeyPresent(hdr, "SVTYPE")) bcf_get_info_string(hdr, rec, "SVTYPE", &svt, &nsvt);
+    if (_isKeyPresent(hdr, "SVTYPE")) {
+      if (bcf_get_info_string(hdr, rec, "SVTYPE", &svt, &nsvt) > 0) svtPresent = true;
+    }
     if (_isKeyPresent(hdr, "GQ")) {
       if (_getFormatType(hdr, "GQ") == BCF_HT_INT) {
 	if (bcf_get_format_int32(hdr, rec, "GQ", &gqInt, &ngq) > 0) gqPresent = true;
@@ -302,8 +305,10 @@ int main(int argc, char **argv) {
 	    else ratioRef.push_back( (double) dv[i] / (double) (dr[i] + dv[i]) );
 	  }
 	} else {
-	  totalSR += rv[i];
-	  totalPE += dv[i];
+	  if (dvPresent) {
+	    totalSR += rv[i];
+	    totalPE += dv[i];
+	  }
 
 	  // Only het. carrier
 	  if (gt_type == 1) {
@@ -332,7 +337,7 @@ int main(int argc, char **argv) {
     if (ac[1] != 1) rareCarrier = "NA";
     TPrecision af = (TPrecision) ac[1] / (TPrecision) (ac[0] + ac[1]);
     int32_t svlen = 1;
-    if (std::string(svt) == "TRA") svlen = 0;
+    if ((svt != NULL) && (std::string(svt) == "TRA")) svlen = 0;
     else if (svend != NULL) svlen = *svend - rec->pos;
     if ((svt != NULL) && (std::string(svt) == "INS")) svlen = *inslen;
     int32_t ilen = 0;
@@ -376,7 +381,10 @@ int main(int argc, char **argv) {
       else if (*cHead == "vaf") std::cout << af;
       else if (*cHead == "singleton") std::cout << rareCarrier;
       else if (*cHead == "missingrate") std::cout << missingRate;
-      else if (*cHead == "svtype") std::cout << svt;
+      else if (*cHead == "svtype") {
+	if (svtPresent) std::cout << svt;
+	else std::cout << "NA";
+      }
       else if (*cHead == "ct") std::cout << ctval;
       else if (*cHead == "precise") std::cout << precise;
       else if (*cHead == "ci") {
