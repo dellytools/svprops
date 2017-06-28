@@ -58,16 +58,19 @@ int main(int argc, char **argv) {
   int32_t* gt = NULL;
   std::cout << "sample\tmissing\thomref\thet\thomalt" << std::endl;
   while (bcf_read(ifile, hdr, rec) == 0) {
-    bcf_unpack(rec, BCF_UN_FMT);
-    bcf_get_format_int32(hdr, rec, "GT", &gt, &ngt);
-    for (int i = 0; i < bcf_hdr_nsamples(hdr); ++i) {
-      if ((bcf_gt_allele(gt[i*2]) != -1) && (bcf_gt_allele(gt[i*2 + 1]) != -1)) {
-	int gt_type = bcf_gt_allele(gt[i*2]) + bcf_gt_allele(gt[i*2 + 1]);
-	if (gt_type == 0) ++ref[i];
-	else if (gt_type == 1) ++het[i];
-	else ++hom[i];
-      } else {
-	++missing[i];
+    // Only bi-allelic
+    if (rec->n_allele == 2) {
+      bcf_unpack(rec, BCF_UN_FMT);
+      bcf_get_format_int32(hdr, rec, "GT", &gt, &ngt);
+      for (int i = 0; i < bcf_hdr_nsamples(hdr); ++i) {
+	if ((bcf_gt_allele(gt[i*2]) != -1) && (bcf_gt_allele(gt[i*2 + 1]) != -1)) {
+	  int gt_type = bcf_gt_allele(gt[i*2]) + bcf_gt_allele(gt[i*2 + 1]);
+	  if (gt_type == 0) ++ref[i];
+	  else if (gt_type == 1) ++het[i];
+	  else ++hom[i];
+	} else {
+	  ++missing[i];
+	}
       }
     }
   }

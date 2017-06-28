@@ -203,6 +203,8 @@ int main(int argc, char **argv) {
   bcf1_t* rec = bcf_init();
   uint32_t siteCount = 0;
   while (bcf_read(ifile, hdr, rec) == 0) {
+    if (rec->n_allele != 2) continue;
+    
     bool gqPresent = false;
     bool rcPresent = false;
     bool dvPresent = false;
@@ -211,11 +213,24 @@ int main(int argc, char **argv) {
     bool hwePresent = false;
     bool ciPresent = false;
     bool svtPresent = false;
+    bool svEndPresent = false;
+    int32_t endsv = 0;
     
     ++siteCount;
     bcf_unpack(rec, BCF_UN_ALL);
     bcf_get_format_int32(hdr, rec, "GT", &gt, &ngt);
-    if (_isKeyPresent(hdr, "END")) bcf_get_info_int32(hdr, rec, "END", &svend, &nsvend);
+    if (_isKeyPresent(hdr, "END")) {
+      if (bcf_get_info_int32(hdr, rec, "END", &svend, &nsvend) > 0) {
+	endsv = *svend;
+	svEndPresent = true;
+      }
+    }
+    if (!svEndPresent) {
+      std::string refAllele = rec->d.allele[0];
+      std::string altAllele = rec->d.allele[1];
+      int32_t diff = refAllele.size() - altAllele.size();
+      endsv = rec->pos + diff + 2;
+    }
     if (_isKeyPresent(hdr, "INSLEN")) bcf_get_info_int32(hdr, rec, "INSLEN", &inslen, &ninslen);
     if (_isKeyPresent(hdr, "HOMLEN")) bcf_get_info_int32(hdr, rec, "HOMLEN", &homlen, &nhomlen);
     if (_isKeyPresent(hdr, "CIPOS")) {
@@ -338,7 +353,7 @@ int main(int argc, char **argv) {
     TPrecision af = (TPrecision) ac[1] / (TPrecision) (ac[0] + ac[1]);
     int32_t svlen = 1;
     if ((svt != NULL) && (std::string(svt) == "TRA")) svlen = 0;
-    else if (svend != NULL) svlen = *svend - rec->pos;
+    else if (endsv != 0) svlen = endsv - rec->pos;
     if ((svt != NULL) && (std::string(svt) == "INS")) svlen = *inslen;
     int32_t ilen = 0;
     if ((precise) && (inslen != NULL)) ilen = *inslen;
@@ -371,10 +386,7 @@ int main(int argc, char **argv) {
       if (*cHead == "chr") std::cout << bcf_hdr_id2name(hdr, rec->rid);
       else if (*cHead == "start") std::cout << (rec->pos + 1);
       else if (*cHead == "chr2") std::cout << chr2Name;
-      else if (*cHead == "end") {
-	if (_isKeyPresent(hdr, "END")) std::cout << *svend;
-	else std::cout << rec->pos + 2;
-      }
+      else if (*cHead == "end") std::cout << endsv;
       else if (*cHead == "id") std::cout << rec->d.id;
       else if (*cHead == "size") std::cout << svlen;
       else if (*cHead == "vac") std::cout << ac[1];
