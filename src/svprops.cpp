@@ -175,6 +175,7 @@ int main(int argc, char **argv) {
   if (_isKeyPresent(hdr, "GQ")) {
     cMap["refgq"] = fieldIndex++;
     cMap["altgq"] = fieldIndex++;
+    cMap["gqsum"] = fieldIndex++;
   }
   if (_isKeyPresent(hdr, "RC")) {
     cMap["rdratio"] = fieldIndex++;
@@ -186,6 +187,7 @@ int main(int argc, char **argv) {
     cMap["maxaltratio"] = fieldIndex++;
     cMap["PEsupport"] = fieldIndex++;
     cMap["SRsupport"] = fieldIndex++;
+    cMap["supportsum"] = fieldIndex++;
   }
 
   typedef std::vector<std::string> TColumnHeader;
@@ -281,6 +283,8 @@ int main(int argc, char **argv) {
     std::string rareCarrier;
     uint32_t totalPE = 0;
     uint32_t totalSR = 0;
+    uint64_t supportsum = 0;
+    double gqsum = 0;
     typedef double TPrecision;
     typedef std::vector<TPrecision> TValueVector;
     TValueVector gqRef;   // GQ of non-carriers
@@ -299,15 +303,26 @@ int main(int argc, char **argv) {
         int gt_type = bcf_gt_allele(gt[i*2]) + bcf_gt_allele(gt[i*2 + 1]);
 	++ac[bcf_gt_allele(gt[i*2])];
 	++ac[bcf_gt_allele(gt[i*2 + 1])];
+	if (dvPresent) {
+	  if (precise) supportsum += rr[i] + rv[i];
+	  else supportsum += dr[i] + dv[i];
+	}
+
 	if (gt_type == 0) {
 	  // Non-carrier
 	  if (gqPresent) {
 	    if (_getFormatType(hdr, "GQ") == BCF_HT_INT) {
 	      if (_missing(gqInt[i])) gqRef.push_back(0);
-	      else gqRef.push_back( gqInt[i] );
+	      else {
+		gqRef.push_back( gqInt[i] );
+		gqsum += gqInt[i];
+	      }
 	    } else if (_getFormatType(hdr, "GQ") == BCF_HT_REAL) {
 	      if (_missing(gqFloat[i])) gqRef.push_back(0);
-	      else gqRef.push_back( gqFloat[i] );
+	      else {
+		gqRef.push_back( gqFloat[i] );
+		gqsum += gqFloat[i];
+	      }
 	    }
 	  } else gqRef.push_back(0);
 	  if (rcPresent) {
@@ -324,17 +339,23 @@ int main(int argc, char **argv) {
 	    totalSR += rv[i];
 	    totalPE += dv[i];
 	  }
-
+	  
 	  // Only het. carrier
 	  if (gt_type == 1) {
 	    if (ac[1] == 1) rareCarrier = hdr->samples[i];
 	    if (gqPresent) {
 	      if (_getFormatType(hdr, "GQ") == BCF_HT_INT) {
 		if (_missing(gqInt[i])) gqAlt.push_back(0);
-		else gqAlt.push_back( gqInt[i] );
+		else {
+		  gqAlt.push_back( gqInt[i] );
+		  gqsum += gqInt[i];
+		}
 	      } else if (_getFormatType(hdr, "GQ") == BCF_HT_REAL) {
 		if (_missing(gqFloat[i])) gqAlt.push_back(0);
-		else gqAlt.push_back( gqFloat[i] );
+		else {
+		  gqAlt.push_back( gqFloat[i] );
+		  gqsum += gqFloat[i];
+		}
 	      }
 	    } else gqAlt.push_back(0);
 	    if (rcPresent) {
@@ -408,8 +429,10 @@ int main(int argc, char **argv) {
       else if (*cHead == "maxaltratio") std::cout << maxaltratio;
       else if (*cHead == "PEsupport") std::cout << totalPE;
       else if (*cHead == "SRsupport") std::cout << totalSR;
+      else if (*cHead == "supportsum") std::cout << supportsum;
       else if (*cHead == "refgq") std::cout << refgq;
       else if (*cHead == "altgq") std::cout << altgq;
+      else if (*cHead == "gqsum") std::cout << gqsum;
       else if (*cHead == "rdratio") std::cout << rdRatio;
       else if (*cHead == "medianrc") std::cout << rcMed;
       else if (*cHead == "inslen") std::cout << ilen;
