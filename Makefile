@@ -12,9 +12,9 @@ LDFLAGS += -L${SEQTK_ROOT}
 
 # Additional flags for release/debug
 ifeq (${STATIC}, 1)
-	LDFLAGS += -static -static-libgcc -pthread -lhts -lz
+	LDFLAGS += -static -static-libgcc -pthread -lhts -lz -llzma -lbz2
 else
-	LDFLAGS += -lhts -lz -Wl,-rpath,${SEQTK_ROOT}
+	LDFLAGS += -lhts -lz -llzma -lbz2 -Wl,-rpath,${SEQTK_ROOT}
 endif
 ifeq (${DEBUG}, 1)
 	CXXFLAGS += -g -O0 -fno-inline -DDEBUG
