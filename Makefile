@@ -49,7 +49,7 @@ all:   	$(TARGETS)
 src/svprops: ${SUBMODULES} $(SOURCES)
 	$(CXX) $(CXXFLAGS) $@.cpp -o $@ $(LDFLAGS)
 
-src/sampleprops: .htslib $(SVSOURCES)
+src/sampleprops: ${SUBMODULES} $(SOURCES)
 	$(CXX) $(CXXFLAGS) $@.cpp -o $@ $(LDFLAGS)
 
 install: ${BUILT_PROGRAMS}
