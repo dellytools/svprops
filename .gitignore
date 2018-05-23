@@ -1,3 +1,4 @@
 .htslib
 src/sampleprops
 src/svprops
+bin/
