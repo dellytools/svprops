@@ -375,7 +375,9 @@ int main(int argc, char **argv) {
     int32_t svlen = 1;
     if ((svt != NULL) && (std::string(svt) == "TRA")) svlen = 0;
     else if (endsv != 0) svlen = endsv - rec->pos;
-    if ((svt != NULL) && (std::string(svt) == "INS")) svlen = *inslen;
+    if ((svt != NULL) && (std::string(svt) == "INS")) {
+      if (inslen != NULL) svlen = *inslen;
+    }
     int32_t ilen = 0;
     if ((precise) && (inslen != NULL)) ilen = *inslen;
     int32_t hlen = 0;
