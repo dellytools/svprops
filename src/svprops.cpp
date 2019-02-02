@@ -373,7 +373,7 @@ int main(int argc, char **argv) {
     if (ac[1] != 1) rareCarrier = "NA";
     TPrecision af = (TPrecision) ac[1] / (TPrecision) (ac[0] + ac[1]);
     int32_t svlen = 1;
-    if ((svt != NULL) && (std::string(svt) == "TRA")) svlen = 0;
+    if ((svt != NULL) && (std::string(svt) == "BND")) svlen = 0;
     else if (endsv != 0) svlen = endsv - rec->pos;
     if ((svt != NULL) && (std::string(svt) == "INS")) {
       if (inslen != NULL) svlen = *inslen;
