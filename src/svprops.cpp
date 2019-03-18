@@ -160,6 +160,7 @@ int main(int argc, char **argv) {
   cMap["size"] = fieldIndex++;
   cMap["vac"] = fieldIndex++;
   cMap["vaf"] = fieldIndex++;
+  cMap["pass"] = fieldIndex++;
   cMap["singleton"] = fieldIndex++;
   cMap["missingrate"] = fieldIndex++;
   if (_isKeyPresent(hdr, "SVTYPE")) cMap["svtype"] = fieldIndex++;
@@ -258,6 +259,7 @@ int main(int argc, char **argv) {
 	if (bcf_get_format_float(hdr, rec, "GQ", &gqFloat, &ngq) > 0) gqPresent = true;
       }
     }
+    bool passSite = (bcf_has_filter(hdr, rec, const_cast<char*>("PASS"))==1);
     bool precise = false;
     if (bcf_get_info_flag(hdr, rec, "PRECISE", 0, 0) > 0) precise = true;
     if (_isKeyPresent(hdr, "RC")) {
@@ -280,7 +282,7 @@ int main(int argc, char **argv) {
       if (bcf_get_info_string(hdr, rec, "CT", &ct, &nct) > 0) ctval = std::string(ct);
     }
 
-    std::string rareCarrier;
+    std::set<std::string> rareCarrierSet;
     uint32_t totalPE = 0;
     uint32_t totalSR = 0;
     uint64_t supportsum = 0;
@@ -340,9 +342,12 @@ int main(int argc, char **argv) {
 	    totalPE += dv[i];
 	  }
 	  
+
+	  if (gt_type >= 1) {
+	    if (rareCarrierSet.size() < 2) rareCarrierSet.insert(hdr->samples[i]);
+	  }
 	  // Only het. carrier
 	  if (gt_type == 1) {
-	    if (ac[1] == 1) rareCarrier = hdr->samples[i];
 	    if (gqPresent) {
 	      if (_getFormatType(hdr, "GQ") == BCF_HT_INT) {
 		if (_missing(gqInt[i])) gqAlt.push_back(0);
@@ -370,7 +375,8 @@ int main(int argc, char **argv) {
 	}
       } else ++uncalled;
     }
-    if (ac[1] != 1) rareCarrier = "NA";
+    std::string rareCarrier = "NA";
+    if (rareCarrierSet.size() == 1) rareCarrier = *(rareCarrierSet.begin());
     TPrecision af = (TPrecision) ac[1] / (TPrecision) (ac[0] + ac[1]);
     int32_t svlen = 1;
     if ((svt != NULL) && (std::string(svt) == "BND")) svlen = 0;
@@ -414,6 +420,7 @@ int main(int argc, char **argv) {
       else if (*cHead == "size") std::cout << svlen;
       else if (*cHead == "vac") std::cout << ac[1];
       else if (*cHead == "vaf") std::cout << af;
+      else if (*cHead == "pass") std::cout << passSite;
       else if (*cHead == "singleton") std::cout << rareCarrier;
       else if (*cHead == "missingrate") std::cout << missingRate;
       else if (*cHead == "svtype") {
