@@ -342,12 +342,8 @@ int main(int argc, char **argv) {
 	    totalPE += dv[i];
 	  }
 	  
-
 	  if (gt_type >= 1) {
 	    if (rareCarrierSet.size() < 2) rareCarrierSet.insert(hdr->samples[i]);
-	  }
-	  // Only het. carrier
-	  if (gt_type == 1) {
 	    if (gqPresent) {
 	      if (_getFormatType(hdr, "GQ") == BCF_HT_INT) {
 		if (_missing(gqInt[i])) gqAlt.push_back(0);
