@@ -110,6 +110,8 @@ int main(int argc, char **argv) {
   int32_t* svend = NULL;
   int32_t ninslen = 0;
   int32_t* inslen = NULL;
+  int32_t npos2 = 0;
+  int32_t* pos2 = NULL;
   int32_t nhomlen = 0;
   int32_t* homlen = NULL;
   int32_t ncipos = 0;
@@ -273,9 +275,14 @@ int main(int argc, char **argv) {
     if (_isKeyPresent(hdr, "DR")) bcf_get_format_int32(hdr, rec, "DR", &dr, &ndr);
     if (_isKeyPresent(hdr, "RV")) bcf_get_format_int32(hdr, rec, "RV", &rv, &nrv);
     if (_isKeyPresent(hdr, "RR")) bcf_get_format_int32(hdr, rec, "RR", &rr, &nrr);
-    std::string chr2Name("NA");
+    std::string chr2Name(bcf_hdr_id2name(hdr, rec->rid));
     if (_isKeyPresent(hdr, "CHR2")) {
       if (bcf_get_info_string(hdr, rec, "CHR2", &chr2, &nchr2) > 0) chr2Name = std::string(chr2);
+      if (_isKeyPresent(hdr, "POS2")) {
+	if (bcf_get_info_int32(hdr, rec, "POS2", &pos2, &npos2) > 0) {
+	  endsv = *pos2;
+	}
+      }
     }
     std::string ctval("NA");
     if (_isKeyPresent(hdr, "CT")) {
@@ -463,6 +470,7 @@ int main(int argc, char **argv) {
   // Clean-up
   if (svend != NULL) free(svend);
   if (inslen != NULL) free(inslen);
+  if (pos2 != NULL) free(pos2);
   if (homlen != NULL) free(homlen);
   if (cipos != NULL) free(cipos);
   if (svt != NULL) free(svt);
