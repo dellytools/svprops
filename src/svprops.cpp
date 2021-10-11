@@ -160,6 +160,7 @@ int main(int argc, char **argv) {
   cMap["end"] = fieldIndex++;
   cMap["id"] = fieldIndex++;
   cMap["size"] = fieldIndex++;
+  cMap["qual"] = fieldIndex++;
   cMap["vac"] = fieldIndex++;
   cMap["vaf"] = fieldIndex++;
   cMap["pass"] = fieldIndex++;
@@ -179,6 +180,7 @@ int main(int argc, char **argv) {
     cMap["refgq"] = fieldIndex++;
     cMap["altgq"] = fieldIndex++;
     cMap["gqsum"] = fieldIndex++;
+    cMap["altgqsum"] = fieldIndex++;
   }
   if (_isKeyPresent(hdr, "RC")) {
     cMap["rdratio"] = fieldIndex++;
@@ -294,6 +296,7 @@ int main(int argc, char **argv) {
     uint32_t totalSR = 0;
     uint64_t supportsum = 0;
     double gqsum = 0;
+    double altgqsum = 0;
     typedef double TPrecision;
     typedef std::vector<TPrecision> TValueVector;
     TValueVector gqRef;   // GQ of non-carriers
@@ -357,12 +360,14 @@ int main(int argc, char **argv) {
 		else {
 		  gqAlt.push_back( gqInt[i] );
 		  gqsum += gqInt[i];
+		  altgqsum += gqInt[i];
 		}
 	      } else if (_getFormatType(hdr, "GQ") == BCF_HT_REAL) {
 		if (_missing(gqFloat[i])) gqAlt.push_back(0);
 		else {
 		  gqAlt.push_back( gqFloat[i] );
 		  gqsum += gqFloat[i];
+		  altgqsum += gqFloat[i];
 		}
 	      }
 	    } else gqAlt.push_back(0);
@@ -421,6 +426,7 @@ int main(int argc, char **argv) {
       else if (*cHead == "end") std::cout << endsv;
       else if (*cHead == "id") std::cout << rec->d.id;
       else if (*cHead == "size") std::cout << svlen;
+      else if (*cHead == "qual") std::cout << rec->qual;
       else if (*cHead == "vac") std::cout << ac[1];
       else if (*cHead == "vaf") std::cout << af;
       else if (*cHead == "pass") std::cout << passSite;
@@ -445,6 +451,7 @@ int main(int argc, char **argv) {
       else if (*cHead == "refgq") std::cout << refgq;
       else if (*cHead == "altgq") std::cout << altgq;
       else if (*cHead == "gqsum") std::cout << gqsum;
+      else if (*cHead == "altgqsum") std::cout << altgqsum;
       else if (*cHead == "rdratio") std::cout << rdRatio;
       else if (*cHead == "medianrc") std::cout << rcMed;
       else if (*cHead == "inslen") std::cout << ilen;
