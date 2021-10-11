@@ -44,7 +44,7 @@ TARGETS = ${SUBMODULES} ${BUILT_PROGRAMS}
 all:   	$(TARGETS)
 
 .htslib: $(HTSLIBSOURCES)
-	cd src/htslib && make && make lib-static && cd ../../ && touch .htslib
+	if [ -r src/htslib/Makefile ]; then cd src/htslib && autoheader && autoconf && ./configure --disable-s3 --disable-gcs --disable-libcurl --disable-plugins && $(MAKE) && $(MAKE) lib-static && cd ../../ && touch .htslib; fi
 
 src/svprops: ${SUBMODULES} $(SOURCES)
 	$(CXX) $(CXXFLAGS) $@.cpp -o $@ $(LDFLAGS)
