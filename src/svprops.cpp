@@ -1,26 +1,3 @@
-/*
-============================================================================
-SV VCF properties
-============================================================================
-Copyright (C) 2015 Tobias Rausch
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program.  If not, see <http://www.gnu.org/licenses/>.
-============================================================================
-Contact: Tobias Rausch (rausch@embl.de)
-============================================================================
-*/
-
 #include <iostream>
 #include <set>
 #include <vector>
@@ -122,8 +99,8 @@ int main(int argc, char **argv) {
   float* fic = NULL;
   int32_t nce = 0;
   float* ce = NULL;
-  int32_t nrsq = 0;
-  float* rsq = NULL;
+  int32_t nexchet = 0;
+  float* exchet = NULL;
   int32_t nhwepval = 0;
   float* hwepval = NULL;
   int32_t nchr2 = 0;
@@ -174,8 +151,8 @@ int main(int argc, char **argv) {
   if (_isKeyPresent(hdr, "HOMLEN")) cMap["homlen"] = fieldIndex++;
   if (_isKeyPresent(hdr, "FIC")) cMap["fic"] = fieldIndex++;
   if (_isKeyPresent(hdr, "CE")) cMap["ce"] = fieldIndex++;
-  if (_isKeyPresent(hdr, "RSQ")) cMap["rsq"] = fieldIndex++;
-  if (_isKeyPresent(hdr, "HWEpval")) cMap["hwepval"] = fieldIndex++;
+  if (_isKeyPresent(hdr, "ExcHet")) cMap["exchet"] = fieldIndex++;
+  if (_isKeyPresent(hdr, "HWE")) cMap["hwepval"] = fieldIndex++;
   if (_isKeyPresent(hdr, "GQ")) {
     cMap["refgq"] = fieldIndex++;
     cMap["altgq"] = fieldIndex++;
@@ -216,7 +193,7 @@ int main(int argc, char **argv) {
     bool rcPresent = false;
     bool dvPresent = false;
     bool ficPresent = false;
-    bool rsqPresent = false;
+    bool exchetPresent = false;
     bool hwePresent = false;
     bool ciPresent = false;
     bool svtPresent = false;
@@ -247,11 +224,11 @@ int main(int argc, char **argv) {
       if (bcf_get_info_float(hdr, rec, "FIC", &fic, &nfic) > 0) ficPresent = true;
     }
     if (_isKeyPresent(hdr, "CE")) bcf_get_info_float(hdr, rec, "CE", &ce, &nce);
-    if (_isKeyPresent(hdr, "RSQ")) {
-      if (bcf_get_info_float(hdr, rec, "RSQ", &rsq, &nrsq) > 0) rsqPresent = true;
+    if (_isKeyPresent(hdr, "ExcHet")) {
+      if (bcf_get_info_float(hdr, rec, "ExcHet", &exchet, &nexchet) > 0) exchetPresent = true;
     }
-    if (_isKeyPresent(hdr, "HWEpval")) {
-      if (bcf_get_info_float(hdr, rec, "HWEpval", &hwepval, &nhwepval) > 0) hwePresent = true;
+    if (_isKeyPresent(hdr, "HWE")) {
+      if (bcf_get_info_float(hdr, rec, "HWE", &hwepval, &nhwepval) > 0) hwePresent = true;
     }
     if (_isKeyPresent(hdr, "SVTYPE")) {
       if (bcf_get_info_string(hdr, rec, "SVTYPE", &svt, &nsvt) > 0) svtPresent = true;
@@ -312,13 +289,18 @@ int main(int argc, char **argv) {
     int32_t uncalled = 0;
     for (int i = 0; i < bcf_hdr_nsamples(hdr); ++i) {
       if ((bcf_gt_allele(gt[i*2]) != -1) && (bcf_gt_allele(gt[i*2 + 1]) != -1)) {
-        int gt_type = bcf_gt_allele(gt[i*2]) + bcf_gt_allele(gt[i*2 + 1]);
-	++ac[bcf_gt_allele(gt[i*2])];
-	++ac[bcf_gt_allele(gt[i*2 + 1])];
 	if (dvPresent) {
+	  if (rr[i] + rv[i] + dr[i] + dv[i] == 0) {
+	    // Imputed GT
+	    ++uncalled;
+	    continue;
+	  }
 	  if (precise) supportsum += rr[i] + rv[i];
 	  else supportsum += dr[i] + dv[i];
 	}
+        int gt_type = bcf_gt_allele(gt[i*2]) + bcf_gt_allele(gt[i*2 + 1]);
+	++ac[bcf_gt_allele(gt[i*2])];
+	++ac[bcf_gt_allele(gt[i*2 + 1])];
 
 	if (gt_type == 0) {
 	  // Non-carrier
@@ -339,8 +321,9 @@ int main(int argc, char **argv) {
 	  } else gqRef.push_back(0);
 	  if (rcPresent) {
 	    rcRef.push_back( rc[i] );
-	    if (_isKeyPresent(hdr, "RCL")) rcRefRatio.push_back( (double) rc[i] / (double) (rcl[i] + rcr[i]) );
-	    else rcRefRatio.push_back((double) rc[i]);
+	    if (_isKeyPresent(hdr, "RCL")) {
+	      if ((rcl[i] + rcr[i]) > 0) rcRefRatio.push_back( 2.0 * (double) rc[i] / (double) (rcl[i] + rcr[i]) );
+	    } else rcRefRatio.push_back((double) rc[i]);
 	  }
 	  if (dvPresent) {
 	    if (precise) ratioRef.push_back( (double) rv[i] / (double) (rr[i] + rv[i]) );
@@ -372,8 +355,9 @@ int main(int argc, char **argv) {
 	      }
 	    } else gqAlt.push_back(0);
 	    if (rcPresent) {
-	      if (_isKeyPresent(hdr, "RCL")) rcAltRatio.push_back( (double) rc[i] / (double) (rcl[i] + rcr[i]) );
-	      else rcAltRatio.push_back((double) rc[i]);
+	      if (_isKeyPresent(hdr, "RCL")) {
+		if ((rcl[i] + rcr[i]) > 0) rcAltRatio.push_back( 2.0 * (double) rc[i] / (double) (rcl[i] + rcr[i]) );
+	      } else rcAltRatio.push_back((double) rc[i]);
 	    }
 	    if (dvPresent) {
 	      if (precise) ratioAlt.push_back( (double) rv[i] / (double) (rr[i] + rv[i]) );
@@ -385,7 +369,8 @@ int main(int argc, char **argv) {
     }
     std::string rareCarrier = "NA";
     if (rareCarrierSet.size() == 1) rareCarrier = *(rareCarrierSet.begin());
-    TPrecision af = (TPrecision) ac[1] / (TPrecision) (ac[0] + ac[1]);
+    TPrecision af = 0;
+    if ((ac[0] + ac[1]) > 0) af = (TPrecision) ac[1] / (TPrecision) (ac[0] + ac[1]);
     int32_t svlen = 1;
     if ((svt != NULL) && (std::string(svt) == "BND")) svlen = 0;
     else if (endsv != 0) svlen = endsv - rec->pos;
@@ -463,8 +448,8 @@ int main(int argc, char **argv) {
 	if ((precise) && (nce > 0)) std::cout << *ce;
 	else std::cout << "0";
       }
-      else if (*cHead == "rsq") {
-	if (rsqPresent) std::cout << *rsq;
+      else if (*cHead == "exchet") {
+	if (exchetPresent) std::cout << *exchet;
 	else std::cout << "NA";
       } else if (*cHead == "hwepval") {
 	if (hwePresent) std::cout << *hwepval;
@@ -483,7 +468,7 @@ int main(int argc, char **argv) {
   if (svt != NULL) free(svt);
   if (fic != NULL) free(fic);
   if (ce != NULL) free(ce);
-  if (rsq != NULL) free(rsq);
+  if (exchet != NULL) free(exchet);
   if (hwepval != NULL) free(hwepval);
   if (chr2 != NULL) free(chr2);
   if (ct != NULL) free(ct);
